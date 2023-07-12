@@ -14,7 +14,7 @@ faces = face_cascade.detectMultiScale(gray, 1.1, 4)
 
 # Draw rectangle around the faces
 for (x, y, w, h) in faces:
-    cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+    cv2.rectangle(img, (x, y), (x + w,  y + h), (255, 0, 0), 2)
 
 # Display the output
 cv2.imshow('img', img)
