@@ -4,6 +4,7 @@ import util
 import cv2
 from PIL import Image, ImageTk
 import subprocess
+import datetime
 
 class App:
     def __init__(self):
@@ -38,24 +39,43 @@ class App:
     
     def process_webcam(self):
         ret, frame = self.cap.read()
-
-        self.most_recent_capture_arr = frame
-        img_ = cv2.cvtColor(self.most_recent_capture_arr, cv2.COLOR_BGR2RGB)
-        self.most_recent_capture_pil = Image.fromarray(img_)
-        imgtk = ImageTk.PhotoImage(image=self.most_recent_capture_pil)
-        self._label.imgtk = imgtk
-        self._label.configure(image=imgtk)
+        if ret:
+            self.most_recent_capture_arr = frame
+            img_ = cv2.cvtColor(self.most_recent_capture_arr, cv2.COLOR_BGR2RGB)
+            self.most_recent_capture_pil = Image.fromarray(img_)
+            imgtk = ImageTk.PhotoImage(image=self.most_recent_capture_pil)
+            self._label.imgtk = imgtk
+            self._label.configure(image=imgtk)
         self._label.after(20, self.process_webcam)
+
 
     def login(self):
         unknown_img_path = './.tmp.jpg'
         cv2.imwrite(unknown_img_path, self.most_recent_capture_arr)
-        output = str(subprocess.check_output(['face_recognition',self.db_dir, unknown_img_path]))
-        name = output.split(',')[1][:-3]
-        print(name)
+        output = str(subprocess.check_output(['face_recognition', self.db_dir, unknown_img_path]), encoding='utf-8')
+        print("Output:", output)  # Add this line to see the full output
 
+        names = output.split(',')[1].splitlines()  # Split the names by lines
+        names = [name.strip() for name in names]  # Remove leading and trailing whitespaces from each name
+
+        # Create a set to store unique matched names and exclude unwanted elements
+        matched_names = set(name.rstrip() for name in names if name not in ["unknown_person", "no_persons_found", unknown_img_path])
+
+        if not matched_names:
+            util.msg_box("Ups..", "Unknown person. Please register a new person or try again.")
+        else:
+            welcome_message = ", ".join(matched_names)
+            util.msg_box("Welcome to face recognition", "Welcome, {}".format(welcome_message))
+
+            # Log each name and its corresponding datetime
+            with open(self.log_path, 'a') as f:
+                for name in matched_names:
+                    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    f.write('{},{}\n'.format(name, now))
+                
         os.remove(unknown_img_path)
-
+    
+    
     def logout(self):
         pass
     def register_new_user(self):
@@ -112,4 +132,3 @@ class App:
 if __name__ == "__main__":
     app = App()
     app.start()
-
