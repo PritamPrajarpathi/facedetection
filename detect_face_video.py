@@ -20,10 +20,10 @@ while True:
 
     # Draw the rectangle around each face
     for (x, y, w, h) in faces:
-        cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
+        cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
     # Display
-    cv2.imshow('img', img)
+    cv2.imshow('FaceDetection',img )
 
     # Stop if escape key is pressed
     k = cv2.waitKey(30) & 0xff

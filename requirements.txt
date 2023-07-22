@@ -1,2 +1,7 @@
 numpy
 opencv-python
+scikit-learn
+pickle
+face_recognition
+opencv-contrib-python
+tensorflow

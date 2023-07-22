@@ -48,10 +48,10 @@ def recognize_faces(encodings, names):
             cv2.putText(frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 1)
 
         cv2.imshow('Video', frame)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        k = cv2.waitKey(10) & 0xff  # Press 'ESC' for exiting video
+        if k == 27:
             break
-
+        
     video_capture.release()
     cv2.destroyAllWindows()
 
