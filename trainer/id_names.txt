@@ -1,2 +1,4 @@
-1: thuya kyaw
-2: han min oo
+1: Han Min Oo
+2: thuya kyaw
+3: han min oo
+4: Han 

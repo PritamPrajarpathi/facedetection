@@ -28,14 +28,12 @@ while True:
         cv2.rectangle(frame,(x,y),(x+w,y+h),(0,225,0),3)
     cv2.imshow("WindowFrame",frame)
     cv2.waitKey(1)
-    if count == 0:
-        cv2.waitKey(5000)
-    time.sleep(0.3)
-      # Stop if escape key is pressed
     k = cv2.waitKey(30) & 0xff
     if k==27:
         break
     if count>29:
         break
+
+    time.sleep(0.1)
 video.release()
 cv2.destroyAllWindows()

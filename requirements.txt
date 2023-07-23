@@ -5,3 +5,4 @@ pickle
 face_recognition
 opencv-contrib-python
 tensorflow
+opencv-python-headless
