@@ -1,8 +1,10 @@
-numpy
-opencv-python
-scikit-learn
-pickle
-face_recognition
-opencv-contrib-python
-tensorflow
-opencv-python-headless
+# numpy
+# opencv-python
+# pickle
+# face_recognition
+# opencv-contrib-python
+# tensorflow
+# opencv-python-headless
+opencv-python==4.5.3.56
+mediapipe==0.8.6.2
+auto-py-to-exe
