@@ -6,7 +6,7 @@ import os
 known_face_encodings = []
 known_face_names = []
 image_dir = 'Image'
-
+cv2.face.LBPHFaceRecognizer_create()
 for root, dirs, files in os.walk(image_dir):
     for file in files:
         if file.endswith('jpg'):
@@ -20,9 +20,10 @@ for root, dirs, files in os.walk(image_dir):
                 known_face_encodings.append(face_encoding)
                 known_face_names.append(os.path.basename(root))
             else:
-                print(f"{file}")
+                pass
 
 # Set up the webcam
+
 video = cv2.VideoCapture(0)
 
 while True:
@@ -37,20 +38,25 @@ while True:
         matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
         name = "Unknown"  # Default name if no match is found
 
-        # If a match is found, use the known name
-        if True in matches:
-            name = known_face_names[matches.index(True)]
+        face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+        best_match_index = face_distances.argmin()
+        if matches[best_match_index]:
+            name = known_face_names[best_match_index]
 
-        # Draw rectangle around the face and display the name
+        # Calculate confidence as a percentage (the lower the distance, the higher the confidence)
+        confidence = (1 - face_distances[best_match_index]) * 100
+        name_with_confidence = f"{name} ({confidence:.2f}%)"
+
+        # Draw rectangle around the face and display the name with confidence
         cv2.rectangle(frame, (left, top), (right, bottom), (0, 225, 0), 3)
         font = cv2.FONT_HERSHEY_DUPLEX
-        cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (0, 0, 255), 1)
+        cv2.putText(frame, name_with_confidence, (left + 6, bottom - 6), font, 0.5, (0, 0, 200), 1)
 
     # Display the frame with rectangles and names
-    cv2.imshow("Face Recognition", frame)
+    cv2.imshow("TTU Face Recognition Project", frame)
 
     # Press 'q' to exit
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    if cv2.waitKey(1) & 0xFF == 27:
         break
 
 # Release the video capture object and close all OpenCV windows
