@@ -5,17 +5,18 @@ import cv2
 from PIL import Image, ImageTk
 import subprocess
 import datetime
+import face_recognition
+
 
 class App:
     def __init__(self):
         self.main_window = tk.Tk()
+        self.main_window.title("Face Recognition App 5th year Group 1 project")
         self.main_window.geometry("1200x520+350+100")
 
-        self.login_button_main_window = util.get_button(self.main_window, 'login', 'green', self.login)
-        self.login_button_main_window.place(x=750, y=200)
-
-        self.logout_button_main_window = util.get_button(self.main_window, 'logout', 'red', self.logout)
-        self.logout_button_main_window.place(x=750, y=300)
+        self.main_window.tk_setPalette(background="#fff")
+        self.login_button_main_window = util.get_button(self.main_window, 'Check In', 'green', self.login)
+        self.login_button_main_window.place(x=750, y=300)
 
         self.register_new_user_button_main_window = util.get_button(self.main_window, 'register new user', 'gray',
                                                                     self.register_new_user, fg='black')
@@ -75,29 +76,27 @@ class App:
                 
         os.remove(unknown_img_path)
     
-    
-    def logout(self):
-        pass
+
     def register_new_user(self):
         self.register_new_user_window = tk.Toplevel(self.main_window)
-        self.register_new_user_window.geometry("1200x520+370+120")
+        self.register_new_user_window.geometry("600x520+370+120")
 
-        self.accept_button_register_new_user_window = util.get_button(self.register_new_user_window, 'Accept', 'green', self.accept_register_new_user)
-        self.accept_button_register_new_user_window.place(x=750, y=300)
+        self.accept_button_register_new_user_window = util.get_button(self.register_new_user_window, 'Save', 'green', self.accept_register_new_user)
+        self.accept_button_register_new_user_window.place(x=30, y=300)
 
         self.try_again_button_register_new_user_window = util.get_button(self.register_new_user_window, 'Try again', 'red', self.try_again_register_new_user)
-        self.try_again_button_register_new_user_window.place(x=750, y=400)
+        self.try_again_button_register_new_user_window.place(x=30, y=400)
 
-        self.capture_label = util.get_img_label(self.register_new_user_window)
-        self.capture_label.place(x=10, y=0, width=700, height=500)
+        # self.capture_label = util.get_img_label(self.register_new_user_window)
+        # self.capture_label.place(x=10, y=0, width=700, height=500)
 
-        self.add_img_to_label(self.capture_label)
+        # self.add_img_to_label(self.capture_label)
 
         self.entry_text_register_new_user = util.get_entry_text(self.register_new_user_window)
-        self.entry_text_register_new_user.place(x=750, y=150)
+        self.entry_text_register_new_user.place(x=30, y=150)
 
-        self.text_label_register_new_user = util.get_text_label(self.register_new_user_window, 'Please, \ninput username:')
-        self.text_label_register_new_user.place(x=750, y=70)
+        self.text_label_register_new_user = util.get_text_label(self.register_new_user_window, 'Please, \ninput your name:')
+        self.text_label_register_new_user.place(x=30, y=70)
 
     def accept_register_new_user(self):
         name = self.entry_text_register_new_user.get(1.0, "end-1c")
@@ -123,8 +122,6 @@ class App:
         label.configure(image=imgtk)
 
         self.register_new_user_capture = self.most_recent_capture_arr.copy()
-
-
 
     def start(self):
         self.main_window.mainloop()
