@@ -38,17 +38,57 @@ class App:
             self._label = label
             self.process_webcam()
     
+    # def process_webcam(self):
+    #     ret, frame = self.cap.read()
+    #     if ret:
+    #         self.most_recent_capture_arr = frame
+    #         img_ = cv2.cvtColor(self.most_recent_capture_arr, cv2.COLOR_BGR2RGB)
+    #         self.most_recent_capture_pil = Image.fromarray(img_)
+    #         imgtk = ImageTk.PhotoImage(image=self.most_recent_capture_pil)
+    #         self._label.imgtk = imgtk
+    #         self._label.configure(image=imgtk)
+    #     self._label.after(20, self.process_webcam)
+
+
+
     def process_webcam(self):
         ret, frame = self.cap.read()
         if ret:
+            # Detect faces in the frame
             self.most_recent_capture_arr = frame
-            img_ = cv2.cvtColor(self.most_recent_capture_arr, cv2.COLOR_BGR2RGB)
+            faces = self.detect_faces(frame)
+            
+            # Draw rectangles around detected faces
+            frame_with_rectangles = self.draw_rectangles(frame, faces)
+            
+            # Display the frame with rectangles
+            img_ = cv2.cvtColor(frame_with_rectangles, cv2.COLOR_BGR2RGB)
             self.most_recent_capture_pil = Image.fromarray(img_)
             imgtk = ImageTk.PhotoImage(image=self.most_recent_capture_pil)
             self._label.imgtk = imgtk
             self._label.configure(image=imgtk)
+        
         self._label.after(20, self.process_webcam)
+                
+    def detect_faces(self, frame):
+        # Load the pre-trained face detection model from OpenCV
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
+        # Convert the frame to grayscale for face detection
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Detect faces in the grayscale image
+        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+        return faces
+
+    def draw_rectangles(self, frame, faces):
+        frame_with_rectangles = frame.copy()
+        for (x, y, w, h) in faces:
+            # Draw a rectangle around each detected face
+            cv2.rectangle(frame_with_rectangles, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+        return frame_with_rectangles
 
     def login(self):
         unknown_img_path = './.tmp.jpg'
@@ -79,24 +119,24 @@ class App:
 
     def register_new_user(self):
         self.register_new_user_window = tk.Toplevel(self.main_window)
-        self.register_new_user_window.geometry("600x520+370+120")
+        self.register_new_user_window.geometry("1200x520+370+120")
 
-        self.accept_button_register_new_user_window = util.get_button(self.register_new_user_window, 'Save', 'green', self.accept_register_new_user)
-        self.accept_button_register_new_user_window.place(x=30, y=300)
+        self.accept_button_register_new_user_window = util.get_button(self.register_new_user_window, 'Accept', 'green', self.accept_register_new_user)
+        self.accept_button_register_new_user_window.place(x=750, y=300)
 
         self.try_again_button_register_new_user_window = util.get_button(self.register_new_user_window, 'Try again', 'red', self.try_again_register_new_user)
-        self.try_again_button_register_new_user_window.place(x=30, y=400)
+        self.try_again_button_register_new_user_window.place(x=750, y=400)
 
-        # self.capture_label = util.get_img_label(self.register_new_user_window)
-        # self.capture_label.place(x=10, y=0, width=700, height=500)
+        self.capture_label = util.get_img_label(self.register_new_user_window)
+        self.capture_label.place(x=10, y=0, width=700, height=500)
 
-        # self.add_img_to_label(self.capture_label)
+        self.add_img_to_label(self.capture_label)
 
         self.entry_text_register_new_user = util.get_entry_text(self.register_new_user_window)
-        self.entry_text_register_new_user.place(x=30, y=150)
+        self.entry_text_register_new_user.place(x=750, y=150)
 
-        self.text_label_register_new_user = util.get_text_label(self.register_new_user_window, 'Please, \ninput your name:')
-        self.text_label_register_new_user.place(x=30, y=70)
+        self.text_label_register_new_user = util.get_text_label(self.register_new_user_window, 'Please, \ninput username:')
+        self.text_label_register_new_user.place(x=750, y=70)
 
     def accept_register_new_user(self):
         name = self.entry_text_register_new_user.get(1.0, "end-1c")
