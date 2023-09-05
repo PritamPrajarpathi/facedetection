@@ -5,9 +5,10 @@ import cv2
 from PIL import Image, ImageTk
 import subprocess
 import datetime
-import face_recognition
+# import face_recognition
 import os
 import time
+import openai
 
 
 class App:
@@ -48,6 +49,10 @@ class App:
             
             # Draw rectangles around detected faces
             frame_with_rectangles = self.draw_rectangles(frame, faces)
+            if hasattr(self, 'recognized_name'):
+                # Add a text overlay with the recognized name
+                cv2.putText(frame_with_rectangles, f"Welcome, {self.recognized_name}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+           
             
             # Display the frame with rectangles
             img_ = cv2.cvtColor(frame_with_rectangles, cv2.COLOR_BGR2RGB)
@@ -94,7 +99,11 @@ class App:
             util.msg_box("Ups..", "Unknown person. Please register a new person or try again.")
         else:
             welcome_message = ", ".join(matched_names)
-            util.msg_box("Welcome to face recognition", "Welcome, {}".format(welcome_message))
+             # Generate a customized welcome message using GPT-3
+            # generated_welcome_message = self.generate_welcome_message(welcome_message)
+            # util.msg_box("Welcome to face recognition", generated_welcome_message)
+            self.recognized_name = welcome_message
+            # util.msg_box("Welcome to face recognition", "Welcome, {}".format(welcome_message))
 
             # Log each name and its corresponding datetime
             with open(self.log_path, 'a') as f:
@@ -103,6 +112,20 @@ class App:
                     f.write('{},{}\n'.format(name, now))
                 
         os.remove(unknown_img_path)
+    # def generate_welcome_message(self, recognized_name):
+    #     # Replace 'YOUR_API_KEY' with your actual OpenAI API key
+    #     openai.api_key = 'YOUR_API_KEY'
+
+    #     # Customize the welcome message using GPT-3
+    #     prompt = f"Generate a welcome message for {recognized_name}."
+    #     response = openai.Completion.create(
+    #         engine="text-davinci-002",
+    #         prompt=prompt,
+    #         max_tokens=50  # Adjust the max_tokens to control the response length
+    #     )
+
+    #     return response.choices[0].text
+
     
     def register_new_user(self):
         self.register_new_user_window = tk.Toplevel(self.main_window)

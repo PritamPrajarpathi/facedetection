@@ -6,7 +6,7 @@ from PIL import Image, ImageTk
 import subprocess
 import datetime
 import face_recognition
-import os
+import os,sys
 import time
 
 
@@ -163,6 +163,13 @@ class App:
         cv2.destroyAllWindows()
         self.register_new_user_window.destroy()
         self.main_window.destroy()
+    def run_face_training():
+        print("Running face training...")
+        python_cmd = sys.executable
+        cv2.face.LBPHFaceRecognizer_create()
+        training_process = subprocess.Popen([python_cmd, "face_training.py"], text=True)
+        training_process.wait()
+        print("Face training completed.")
 
     def try_again_register_new_user(self):
         self.register_new_user_window.destroy()
