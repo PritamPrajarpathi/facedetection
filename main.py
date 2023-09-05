@@ -1,60 +1,64 @@
-import os
 import cv2
 import face_recognition
+import os
 
-def load_training_data(training_dir):
-    encodings = []
-    names = []
-    for person_name in os.listdir(training_dir):
-        person_dir = os.path.join(training_dir, person_name)
-        if os.path.isdir(person_dir):
-            for image_name in os.listdir(person_dir):
-                image_path = os.path.join(person_dir, image_name)
-                image = face_recognition.load_image_file(image_path)
-                face_locations = face_recognition.face_locations(image)
-                encoding = face_recognition.face_encodings(image, face_locations)[0]
-                encodings.append(encoding)
-                names.append(person_name)
-    return encodings, names
+# Load known face images and names from the Image folder
+known_face_encodings = []
+known_face_names = []
+image_dir = 'Image'
+cv2.face.LBPHFaceRecognizer_create()
+for root, dirs, files in os.walk(image_dir):
+    for file in files:
+        if file.endswith('jpg'):
+            image_path = os.path.join(root, file)
+            image = face_recognition.load_image_file(image_path)
+            face_encodings = face_recognition.face_encodings(image)
 
-def recognize_faces(encodings, names):
-    video_capture = cv2.VideoCapture(0)
+            # Check if any faces were detected in the image
+            if len(face_encodings) > 0:
+                face_encoding = face_encodings[0]
+                known_face_encodings.append(face_encoding)
+                known_face_names.append(os.path.basename(root))
+            else:
+                pass
 
-    while True:
-        ret, frame = video_capture.read()
-        small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
-        rgb_small_frame = small_frame[:, :, ::-1]
-        face_locations = face_recognition.face_locations(rgb_small_frame)
-        face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+# Set up the webcam
 
-        for face_encoding in face_encodings:
-            matches = face_recognition.compare_faces(encodings, face_encoding)
-            name = "Unknown"
+video = cv2.VideoCapture(0)
 
-            if True in matches:
-                matched_indices = [i for i, match in enumerate(matches) if match]
-                counts = {}
-                for i in matched_indices:
-                    name = names[i]
-                    counts[name] = counts.get(name, 0) + 1
-                name = max(counts, key=counts.get)
+while True:
+    ret, frame = video.read()
 
-            top, right, bottom, left = face_locations[0]
-            top *= 4
-            right *= 4
-            bottom *= 4
-            left *= 4
-            cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-            cv2.putText(frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 1)
+    # Find all face locations and encodings in the current frame
+    face_locations = face_recognition.face_locations(frame)
+    face_encodings = face_recognition.face_encodings(frame, face_locations)
 
-        cv2.imshow('Video', frame)
-        k = cv2.waitKey(10) & 0xff  # Press 'ESC' for exiting video
-        if k == 27:
-            break
-        
-    video_capture.release()
-    cv2.destroyAllWindows()
+    for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+        # Check if the current face matches any known face
+        matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+        name = "Unknown"  # Default name if no match is found
 
-training_dir = "Image"
-encodings, names = load_training_data(training_dir)
-recognize_faces(encodings, names)
+        face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+        best_match_index = face_distances.argmin()
+        if matches[best_match_index]:
+            name = known_face_names[best_match_index]
+
+        # Calculate confidence as a percentage (the lower the distance, the higher the confidence)
+        confidence = (1 - face_distances[best_match_index]) * 100
+        name_with_confidence = f"{name} ({confidence:.2f}%)"
+
+        # Draw rectangle around the face and display the name with confidence
+        cv2.rectangle(frame, (left, top), (right, bottom), (0, 225, 0), 3)
+        font = cv2.FONT_HERSHEY_DUPLEX
+        cv2.putText(frame, name_with_confidence, (left + 6, bottom - 6), font, 0.5, (0, 0, 200), 1)
+
+    # Display the frame with rectangles and names
+    cv2.imshow("TTU Face Recognition Project", frame)
+
+    # Press 'q' to exit
+    if cv2.waitKey(1) & 0xFF == 27:
+        break
+
+# Release the video capture object and close all OpenCV windows
+video.release()
+cv2.destroyAllWindows()

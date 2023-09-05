@@ -31,7 +31,7 @@ while True:
     k = cv2.waitKey(30) & 0xff
     if k==27:
         break
-    if count>29:
+    if count>31:
         break
 
     time.sleep(0.1)
