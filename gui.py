@@ -5,7 +5,9 @@ import cv2
 from PIL import Image, ImageTk
 import subprocess
 import datetime
-import face_recognition
+import os
+import time
+import openai
 
 
 class App:
@@ -31,25 +33,11 @@ class App:
 
         self.log_path = './log.txt'
 
-
     def add_webcam(self, label):
             if 'cap' not in self.__dict__:
                 self.cap = cv2.VideoCapture(0)
             self._label = label
             self.process_webcam()
-    
-    # def process_webcam(self):
-    #     ret, frame = self.cap.read()
-    #     if ret:
-    #         self.most_recent_capture_arr = frame
-    #         img_ = cv2.cvtColor(self.most_recent_capture_arr, cv2.COLOR_BGR2RGB)
-    #         self.most_recent_capture_pil = Image.fromarray(img_)
-    #         imgtk = ImageTk.PhotoImage(image=self.most_recent_capture_pil)
-    #         self._label.imgtk = imgtk
-    #         self._label.configure(image=imgtk)
-    #     self._label.after(20, self.process_webcam)
-
-
 
     def process_webcam(self):
         ret, frame = self.cap.read()
@@ -60,6 +48,10 @@ class App:
             
             # Draw rectangles around detected faces
             frame_with_rectangles = self.draw_rectangles(frame, faces)
+            if hasattr(self, 'recognized_name'):
+                # Add a text overlay with the recognized name
+                cv2.putText(frame_with_rectangles, f"Welcome, {self.recognized_name}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+           
             
             # Display the frame with rectangles
             img_ = cv2.cvtColor(frame_with_rectangles, cv2.COLOR_BGR2RGB)
@@ -106,9 +98,7 @@ class App:
             util.msg_box("Ups..", "Unknown person. Please register a new person or try again.")
         else:
             welcome_message = ", ".join(matched_names)
-            util.msg_box("Welcome to face recognition", "Welcome, {}".format(welcome_message))
-
-            # Log each name and its corresponding datetime
+            self.recognized_name = welcome_message
             with open(self.log_path, 'a') as f:
                 for name in matched_names:
                     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -116,7 +106,6 @@ class App:
                 
         os.remove(unknown_img_path)
     
-
     def register_new_user(self):
         self.register_new_user_window = tk.Toplevel(self.main_window)
         self.register_new_user_window.geometry("1200x520+370+120")
@@ -140,18 +129,42 @@ class App:
 
     def accept_register_new_user(self):
         name = self.entry_text_register_new_user.get(1.0, "end-1c")
-        cv2.imwrite(os.path.join(self.db_dir, '{}.jpg'.format(name)),self.register_new_user_capture)
+        user_name = name.strip().title()
+        cv2.imwrite(os.path.join(self.db_dir, '{}.jpg'.format(user_name)),self.register_new_user_capture) 
+        self.capture_images(user_name)
         util.msg_box("Success!","User was successfully captured")
-        
-        # embeddings = face_recognition.face_encodings(self.register_new_user_capture)[0]
-
-        # file = open(os.path.join(self.db_dir, '{}.pickle'.format(name)), 'wb')
-        # pickle.dump(embeddings, file)
-
-        # util.msg_box('Success!', 'User was registered successfully !')
-
         self.register_new_user_window.destroy()
 
+
+    def capture_images(self, user_name):
+        video = cv2.VideoCapture(0)
+        facedetect = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+        count = 0
+
+        # Create a subfolder for the user's images
+        user_image_dir = os.path.join('Image', user_name)
+        os.makedirs(user_image_dir, exist_ok=True)
+
+        while count < 30:
+            ret, frame = video.read()
+            faces = facedetect.detectMultiScale(frame, 1.3, 5)
+            for x, y, w, h in faces:
+                count = count + 1
+                img_name = os.path.join(user_image_dir, f'{user_name}_{count}.jpg')
+                print(f"Creating Image.............{img_name}")
+                cv2.imwrite(img_name, frame[y:y+h, x:x+w])
+                cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 3)
+            cv2.imshow("WindowFrame", frame)
+            cv2.waitKey(1)
+            k = cv2.waitKey(30) & 0xff
+            if k == 27:
+                break
+            time.sleep(0.1)
+        
+        video.release()
+        cv2.destroyAllWindows()
+        self.register_new_user_window.destroy()
+        self.main_window.destroy()
 
     def try_again_register_new_user(self):
         self.register_new_user_window.destroy()
