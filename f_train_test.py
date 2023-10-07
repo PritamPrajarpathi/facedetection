@@ -86,4 +86,4 @@ for i in range(len(X_test)):
 
 accuracy = (correct_predictions / total_predictions) * 100
 print("\n [INFO] Testing completed.")
-print(f"Accuracy: {accuracy:.2f}%")
+#print(f"Accuracy: {accuracy:.2f}%")
